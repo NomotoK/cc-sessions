@@ -1,0 +1,6 @@
+{"type":"system","message":"System prompt...","sessionId":"ccc33333-4444-5555-6666-777788889999"}
+{"type":"user","message":{"role":"user","content":"<local-command-caveat>自动注入的消息</local-command-caveat>"}}
+{"type":"user","message":{"role":"user","content":"用户的实际问题"}}
+{"type":"assistant","message":{"role":"assistant","content":"回复"}}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"最后的用户消息"}]}}
+{"type":"last-prompt","lastPrompt":"最后的用户消息","sessionId":"ccc33333-4444-5555-6666-777788889999","leafUuid":"leaf-3"}

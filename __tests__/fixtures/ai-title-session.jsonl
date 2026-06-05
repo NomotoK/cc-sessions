@@ -1,0 +1,4 @@
+{"type":"system","message":"System prompt...","sessionId":"bbb22222-3333-4444-5555-666677778888"}
+{"type":"user","message":{"role":"user","content":"用户提问"}}
+{"type":"ai-title","aiTitle":"AI 自动标题","sessionId":"bbb22222-3333-4444-5555-666677778888"}
+{"type":"last-prompt","sessionId":"bbb22222-3333-4444-5555-666677778888","leafUuid":"leaf-2"}
