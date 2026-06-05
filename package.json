@@ -1,0 +1,32 @@
+{
+  "name": "cc-sessions",
+  "version": "1.0.0",
+  "description": "TUI for managing Claude Code sessions",
+  "type": "module",
+  "main": "dist/main.js",
+  "bin": {
+    "cc-sessions": "./bin/cc-sessions.sh"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "node dist/main.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "ink": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "react": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
