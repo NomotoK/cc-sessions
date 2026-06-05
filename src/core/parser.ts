@@ -25,9 +25,9 @@ export class JsonlSessionParser implements ISessionParser {
       const record = this.safeParse(line);
       if (!record) continue;
 
-      if (record.type === 'custom-title' && record.customTitle) {
+      if (record.type === 'custom-title' && typeof record.customTitle === 'string') {
         result.customTitle = record.customTitle;
-      } else if (record.type === 'ai-title' && record.aiTitle) {
+      } else if (record.type === 'ai-title' && typeof record.aiTitle === 'string') {
         result.aiTitle = record.aiTitle;
       } else if (record.type === 'user' && result.firstUserMessage === null) {
         const text = this.extractUserText(record);
@@ -42,7 +42,7 @@ export class JsonlSessionParser implements ISessionParser {
       const tailLines = await this.readTailLines(filePath, 100);
       for (let i = tailLines.length - 1; i >= 0; i--) {
         const record = this.safeParse(tailLines[i]);
-        if (record?.type === 'last-prompt' && record.lastPrompt) {
+        if (record?.type === 'last-prompt' && typeof record.lastPrompt === 'string') {
           result.lastPrompt = this.truncate(record.lastPrompt);
           break;
         }
@@ -57,8 +57,9 @@ export class JsonlSessionParser implements ISessionParser {
     return new Promise((resolve, reject) => {
       const stream = createReadStream(filePath, { encoding: 'utf-8' });
       let buffer = '';
-      stream.on('data', (chunk: string) => {
-        buffer += chunk;
+      stream.on('data', (chunk: string | Buffer) => {
+        const str = typeof chunk === 'string' ? chunk : chunk.toString('utf-8');
+        buffer += str;
         const parts = buffer.split('\n');
         buffer = parts.pop()!;
         for (const part of parts) {
