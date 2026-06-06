@@ -9,6 +9,7 @@ import ConfirmDialog from './components/ConfirmDialog.js';
 import { ClaudeProjectScanner } from './core/scanner.js';
 import { JsonlSessionParser } from './core/parser.js';
 import { SessionDeleter } from './core/deleter.js';
+import { calculateProjectPaneWidth } from './utils/layout.js';
 import { PathEncoder } from './utils/path.js';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
@@ -427,8 +428,10 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
     }
   });
 
-  // ----- Height calculations -----
+  // ----- Terminal size calculations -----
   const terminalHeight = stdout?.rows ?? 24;
+  const terminalColumns = stdout?.columns ?? 80;
+  const projectPaneWidth = calculateProjectPaneWidth(terminalColumns);
   const listHeight = Math.max(3, terminalHeight - 5); // 2 header + 3 footer
   const projectListHeight = listHeight - 1;
 
@@ -460,6 +463,7 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
           isFocused={state.focusedPane === 'project'}
           visibleHeight={projectListHeight}
           deletingIndex={projectDeletingIndex}
+          width={projectPaneWidth}
         />
         <Box flexDirection="column" flexGrow={1}>
           <SearchBar

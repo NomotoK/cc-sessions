@@ -8,6 +8,7 @@ interface ProjectListProps {
   isFocused: boolean;
   visibleHeight: number;
   deletingIndex: number | null;
+  width: number;
 }
 
 function truncate(str: string, maxLength: number): string {
@@ -21,8 +22,9 @@ export default function ProjectList({
   isFocused,
   visibleHeight,
   deletingIndex,
+  width,
 }: ProjectListProps): React.ReactElement {
-  const COLUMN_WIDTH = 28;
+  const COLUMN_WIDTH = width;
 
   // Calculate scroll window
   const halfHeight = Math.floor(visibleHeight / 2);
