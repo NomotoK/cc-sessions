@@ -10,13 +10,6 @@ interface SessionListProps {
   deletingIndex: number | null;
 }
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}K`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}M`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}G`;
-}
-
 function formatDate(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
@@ -36,10 +29,7 @@ function labelIcon(source: LabelSource): { char: string; color: string } {
   }
 }
 
-function truncate(str: string, maxLength: number): string {
-  if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength - 1) + '…';
-}
+const TIMESTAMP_COLUMN_WIDTH = 12;
 
 export default function SessionList({
   sessions,
@@ -73,47 +63,56 @@ export default function SessionList({
         const isSelected = actualIndex === selectedIndex;
         const isDeleting = deletingIndex === actualIndex;
         const icon = labelIcon(session.labelSource);
-        const metaStr = `${formatDate(session.modifiedAt)}  ${formatSize(session.size)}`;
-        const labelMaxLen = 30;
-        const label = truncate(session.label, labelMaxLen);
+        const timestamp = formatDate(session.modifiedAt);
+        const isSelectedFocused = isSelected && isFocused;
 
-        // Build the label part: icon + space + label
-        const labelText = `${icon.char} ${label}`;
+        let rowBg: string | undefined;
+        let rowFg: string | undefined;
+        let bold = false;
 
         if (isDeleting) {
-          return (
-            <Box key={session.uuid} justifyContent="space-between">
-              <Text backgroundColor="red" color="white" bold>
-                {labelText}
-              </Text>
-              <Text backgroundColor="red" color="white" bold>
-                {metaStr}
-              </Text>
-            </Box>
-          );
+          rowBg = 'red';
+          rowFg = 'white';
+          bold = true;
+        } else if (isSelectedFocused) {
+          rowBg = 'cyan';
+          rowFg = 'black';
+        } else if (session.isActive) {
+          rowBg = 'green';
+          rowFg = 'black';
         }
 
-        const selectedBg = isSelected && isFocused ? 'cyan' : undefined;
-        const selectedFg = isSelected && isFocused ? 'black' : undefined;
+        const iconColor = rowFg ?? icon.color;
+        const timestampText = rowBg ? timestamp.padStart(TIMESTAMP_COLUMN_WIDTH) : timestamp;
+        const labelFiller = rowBg ? ' '.repeat(1000) : '';
 
         return (
-          <Box key={session.uuid} justifyContent="space-between">
-            <Text color={selectedFg} backgroundColor={selectedBg}>
+          <Box key={session.uuid}>
+            <Box flexGrow={1} overflowX="hidden">
+              <Text
+                wrap="truncate"
+                color={rowFg}
+                backgroundColor={rowBg}
+                bold={bold}
+              >
               {icon.char === ' ' ? (
-                <Text color={selectedFg} backgroundColor={selectedBg}>{'  '}</Text>
+                  <Text color={rowFg} backgroundColor={rowBg}>{'  '}</Text>
               ) : (
-                <Text color={isSelected && isFocused ? selectedFg : icon.color} backgroundColor={selectedBg}>{icon.char}</Text>
+                  <Text color={iconColor} backgroundColor={rowBg}>{icon.char}</Text>
               )}
-              <Text color={selectedFg} backgroundColor={selectedBg}>{' '}{label}</Text>
-              {session.isActive && (
-                <Text color={isSelected && isFocused ? 'black' : 'green'} backgroundColor={selectedBg}>
-                  {' *'}
-                </Text>
-              )}
-            </Text>
-            <Text color={selectedFg} backgroundColor={selectedBg} dimColor={!isSelected || !isFocused}>
-              {metaStr}
-            </Text>
+                <Text color={rowFg} backgroundColor={rowBg}>{' '}{session.label}{labelFiller}</Text>
+              </Text>
+            </Box>
+            <Box width={TIMESTAMP_COLUMN_WIDTH} flexShrink={0}>
+              <Text
+                color={rowFg}
+                backgroundColor={rowBg}
+                bold={bold}
+                dimColor={!isSelectedFocused && !session.isActive && !isDeleting}
+              >
+                {timestampText}
+              </Text>
+            </Box>
           </Box>
         );
       })}
