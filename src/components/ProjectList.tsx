@@ -13,6 +13,13 @@ interface ProjectListProps {
 
 const COUNT_COLUMN_WIDTH = 6;
 
+function formatCount(count: number): string {
+  const countStr = `(${count})`;
+  return countStr.length >= COUNT_COLUMN_WIDTH
+    ? countStr
+    : countStr.padStart(COUNT_COLUMN_WIDTH, ' ');
+}
+
 export default function ProjectList({
   projects,
   selectedIndex,
@@ -50,12 +57,13 @@ export default function ProjectList({
         const isSelected = actualIndex === selectedIndex;
         const isDeleting = deletingIndex === actualIndex;
         const prefix = isSelected && isFocused ? '> ' : '  ';
-        const countStr = `(${project.sessionCount})`;
+        const countStr = formatCount(project.sessionCount);
         const selectedBg = isSelected && isFocused ? 'cyan' : undefined;
         const selectedFg = isSelected && isFocused ? 'black' : undefined;
         const deletingBg = isDeleting ? 'red' : selectedBg;
         const deletingFg = isDeleting ? 'white' : selectedFg;
         const nameColumnWidth = Math.max(0, COLUMN_WIDTH - COUNT_COLUMN_WIDTH);
+        // Ink backgrounds apply to Text, so filler spaces keep row highlights continuous.
         const highlightedNameText = `${prefix}${project.name}${' '.repeat(nameColumnWidth)}`;
 
         return (
@@ -70,7 +78,7 @@ export default function ProjectList({
                 {highlightedNameText}
               </Text>
             </Box>
-            <Box width={COUNT_COLUMN_WIDTH} flexShrink={0} justifyContent="flex-end">
+            <Box width={COUNT_COLUMN_WIDTH} flexShrink={0}>
               <Text
                 wrap="truncate"
                 color={deletingFg}

@@ -58,6 +58,7 @@ describe('ProjectList layout', () => {
     expect(columns[0].props.overflowX).toBe('hidden');
     expect(columns[1].props.width).toBe(6);
     expect(columns[1].props.flexShrink).toBe(0);
+    expect(columns[1].props.justifyContent).toBeUndefined();
   });
 
   it('truncates the project name text instead of wrapping', () => {
@@ -114,9 +115,9 @@ describe('ProjectList layout', () => {
     expect(renderedName).toBe(`> ${projects[0].name}${' '.repeat(42)}`);
   });
 
-  it('truncates count text that is wider than the fixed count column', () => {
+  it('pads short count text inside the highlighted count column', () => {
     const element = ProjectList({
-      projects: [{ ...projects[0], sessionCount: 123456789 }],
+      projects,
       selectedIndex: 0,
       isFocused: true,
       visibleHeight: 5,
@@ -126,7 +127,27 @@ describe('ProjectList layout', () => {
 
     const columns = getProjectColumns(element);
     const countText = getColumnText(columns[1] as React.ReactElement);
+    const renderedCount = React.Children.toArray(countText.props.children).join('');
+
+    expect(countText.props.backgroundColor).toBe('cyan');
+    expect(renderedCount).toBe('  (31)');
+  });
+
+  it('keeps large count text unpadded and truncating inside the count column', () => {
+    const element = ProjectList({
+      projects: [{ ...projects[0], sessionCount: 123456 }],
+      selectedIndex: 0,
+      isFocused: true,
+      visibleHeight: 5,
+      deletingIndex: null,
+      width: 22,
+    });
+
+    const columns = getProjectColumns(element);
+    const countText = getColumnText(columns[1] as React.ReactElement);
+    const renderedCount = React.Children.toArray(countText.props.children).join('');
 
     expect(countText.props.wrap).toBe('truncate');
+    expect(renderedCount).toBe('(123456)');
   });
 });
