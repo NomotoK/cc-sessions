@@ -39,6 +39,11 @@ function getColumnText(column: React.ReactElement): React.ReactElement {
   return React.Children.toArray(column.props.children)[0] as React.ReactElement;
 }
 
+function getLabelText(element: React.ReactElement): React.ReactElement {
+  const columns = getSessionColumns(element);
+  return getColumnText(columns[0] as React.ReactElement);
+}
+
 describe('SessionList layout', () => {
   it('renders label and timestamp as fixed row columns', () => {
     const element = SessionList({
@@ -138,5 +143,34 @@ describe('SessionList layout', () => {
     expect(labelText.props.backgroundColor).toBe('cyan');
     expect(labelContent.startsWith(' short')).toBe(true);
     expect(labelContent.endsWith(' '.repeat(1000))).toBe(true);
+  });
+
+  it('uses selected cyan background before active green background', () => {
+    const element = SessionList({
+      sessions: [makeSession({ isActive: true })],
+      selectedIndex: 0,
+      isFocused: true,
+      visibleHeight: 5,
+      deletingIndex: null,
+    });
+
+    const labelText = getLabelText(element);
+
+    expect(labelText.props.backgroundColor).toBe('cyan');
+  });
+
+  it('uses deleting red background before selected or active background', () => {
+    const element = SessionList({
+      sessions: [makeSession({ isActive: true })],
+      selectedIndex: 0,
+      isFocused: true,
+      visibleHeight: 5,
+      deletingIndex: 0,
+    });
+
+    const labelText = getLabelText(element);
+
+    expect(labelText.props.backgroundColor).toBe('red');
+    expect(labelText.props.bold).toBe(true);
   });
 });
