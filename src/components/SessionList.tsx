@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { Session, LabelSource } from '../core/types.js';
+import { fillToDisplayWidth } from '../utils/layout.js';
 
 interface SessionListProps {
   sessions: Session[];
@@ -8,6 +9,7 @@ interface SessionListProps {
   isFocused: boolean;
   visibleHeight: number;
   deletingIndex: number | null;
+  width: number;
 }
 
 function formatDate(date: Date): string {
@@ -37,6 +39,7 @@ export default function SessionList({
   isFocused,
   visibleHeight,
   deletingIndex,
+  width,
 }: SessionListProps): React.ReactElement {
   if (sessions.length === 0) {
     return (
@@ -55,6 +58,7 @@ export default function SessionList({
   const endIndex = Math.min(sessions.length, startIndex + sessionsPerScreen);
 
   const visibleSessions = sessions.slice(startIndex, endIndex);
+  const labelColumnWidth = Math.max(0, width - TIMESTAMP_COLUMN_WIDTH);
 
   return (
     <Box flexDirection="column" flexGrow={1}>
@@ -84,7 +88,12 @@ export default function SessionList({
 
         const iconColor = rowFg ?? icon.color;
         const timestampText = rowBg ? timestamp.padStart(TIMESTAMP_COLUMN_WIDTH) : timestamp;
-        const labelFiller = rowBg ? ' '.repeat(1000) : '';
+        const iconText = icon.char === ' ' ? '  ' : icon.char;
+        const labelContent = `${iconText} ${session.label}`;
+        const filledLabelContent = rowBg
+          ? fillToDisplayWidth(labelContent, labelColumnWidth)
+          : labelContent;
+        const labelText = filledLabelContent.slice(iconText.length);
 
         return (
           <Box key={session.uuid}>
@@ -95,12 +104,12 @@ export default function SessionList({
                 backgroundColor={rowBg}
                 bold={bold}
               >
-              {icon.char === ' ' ? (
-                  <Text color={rowFg} backgroundColor={rowBg}>{'  '}</Text>
+                {icon.char === ' ' ? (
+                  <Text color={rowFg} backgroundColor={rowBg}>{iconText}</Text>
               ) : (
                   <Text color={iconColor} backgroundColor={rowBg}>{icon.char}</Text>
               )}
-                <Text color={rowFg} backgroundColor={rowBg}>{' '}{session.label}{labelFiller}</Text>
+                <Text color={rowFg} backgroundColor={rowBg}>{labelText}</Text>
               </Text>
             </Box>
             <Box width={TIMESTAMP_COLUMN_WIDTH} flexShrink={0}>

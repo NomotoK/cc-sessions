@@ -432,6 +432,7 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
   const terminalHeight = stdout?.rows ?? 24;
   const terminalColumns = stdout?.columns ?? 80;
   const projectPaneWidth = calculateProjectPaneWidth(terminalColumns);
+  const sessionPaneWidth = Math.max(0, terminalColumns - projectPaneWidth);
   const listHeight = Math.max(3, terminalHeight - 5); // 2 header + 3 footer
   const projectListHeight = listHeight - 1;
 
@@ -485,6 +486,7 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
             isFocused={state.focusedPane === 'session'}
             visibleHeight={projectListHeight}
             deletingIndex={sessionDeletingIndex}
+            width={sessionPaneWidth}
           />
         </Box>
       </Box>

@@ -52,6 +52,7 @@ describe('SessionList layout', () => {
       isFocused: true,
       visibleHeight: 5,
       deletingIndex: null,
+      width: 40,
     });
 
     const columns = getSessionColumns(element);
@@ -71,6 +72,7 @@ describe('SessionList layout', () => {
       isFocused: true,
       visibleHeight: 5,
       deletingIndex: null,
+      width: 40,
     });
 
     const columns = getSessionColumns(element);
@@ -86,6 +88,7 @@ describe('SessionList layout', () => {
       isFocused: false,
       visibleHeight: 5,
       deletingIndex: null,
+      width: 40,
     });
 
     const columns = getSessionColumns(element);
@@ -101,6 +104,7 @@ describe('SessionList layout', () => {
       isFocused: false,
       visibleHeight: 5,
       deletingIndex: null,
+      width: 40,
     });
 
     const columns = getSessionColumns(element);
@@ -117,6 +121,7 @@ describe('SessionList layout', () => {
       isFocused: true,
       visibleHeight: 5,
       deletingIndex: null,
+      width: 40,
     });
 
     const columns = getSessionColumns(element);
@@ -126,13 +131,14 @@ describe('SessionList layout', () => {
     expect(timestampText.props.children).toBe(' 06-06 18:48');
   });
 
-  it('fills highlighted label text with trailing spaces', () => {
+  it('fills highlighted label text exactly to the label width', () => {
     const element = SessionList({
       sessions: [makeSession({ label: 'short' })],
       selectedIndex: 0,
       isFocused: true,
       visibleHeight: 5,
       deletingIndex: null,
+      width: 40,
     });
 
     const columns = getSessionColumns(element);
@@ -141,8 +147,8 @@ describe('SessionList layout', () => {
     const labelContent = React.Children.toArray(labelParts[1].props.children).join('');
 
     expect(labelText.props.backgroundColor).toBe('cyan');
-    expect(labelContent.startsWith(' short')).toBe(true);
-    expect(labelContent.endsWith(' '.repeat(1000))).toBe(true);
+    expect(labelContent).toBe(` short${' '.repeat(21)}`);
+    expect(labelContent.endsWith(' '.repeat(1000))).toBe(false);
   });
 
   it('uses selected cyan background before active green background', () => {
@@ -152,6 +158,7 @@ describe('SessionList layout', () => {
       isFocused: true,
       visibleHeight: 5,
       deletingIndex: null,
+      width: 40,
     });
 
     const labelText = getLabelText(element);
@@ -166,6 +173,7 @@ describe('SessionList layout', () => {
       isFocused: true,
       visibleHeight: 5,
       deletingIndex: 0,
+      width: 40,
     });
 
     const labelText = getLabelText(element);

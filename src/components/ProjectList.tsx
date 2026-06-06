@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { Project } from '../core/types.js';
+import { fillToDisplayWidth } from '../utils/layout.js';
 
 interface ProjectListProps {
   projects: Project[];
@@ -64,7 +65,7 @@ export default function ProjectList({
         const deletingFg = isDeleting ? 'white' : selectedFg;
         const nameColumnWidth = Math.max(0, COLUMN_WIDTH - COUNT_COLUMN_WIDTH);
         // Ink backgrounds apply to Text, so filler spaces keep row highlights continuous.
-        const highlightedNameText = `${prefix}${project.name}${' '.repeat(nameColumnWidth)}`;
+        const highlightedNameText = fillToDisplayWidth(`${prefix}${project.name}`, nameColumnWidth);
 
         return (
           <Box key={project.encodedPath} width={COLUMN_WIDTH}>

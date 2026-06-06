@@ -13,6 +13,16 @@ const projects: Project[] = [
   },
 ];
 
+const shortProjects: Project[] = [
+  {
+    name: 'acct',
+    encodedPath: '-Users-test-acct',
+    fullPath: '/tmp/acct',
+    sessionCount: 3,
+    totalSize: 1000,
+  },
+];
+
 function getProjectItem(element: React.ReactElement): React.ReactElement {
   const rootChildren = React.Children.toArray(element.props.children) as React.ReactElement[];
   return rootChildren[2] as React.ReactElement;
@@ -78,14 +88,14 @@ describe('ProjectList layout', () => {
     expect(nameText.props.wrap).toBe('truncate');
   });
 
-  it('fills the selected name column highlight with trailing spaces', () => {
+  it('fills the selected name column highlight exactly to the label width', () => {
     const element = ProjectList({
-      projects,
+      projects: shortProjects,
       selectedIndex: 0,
       isFocused: true,
       visibleHeight: 5,
       deletingIndex: null,
-      width: 48,
+      width: 22,
     });
 
     const columns = getProjectColumns(element);
@@ -93,17 +103,17 @@ describe('ProjectList layout', () => {
     const renderedName = React.Children.toArray(nameText.props.children).join('');
 
     expect(nameText.props.backgroundColor).toBe('cyan');
-    expect(renderedName).toBe(`> ${projects[0].name}${' '.repeat(42)}`);
+    expect(renderedName).toBe(`> ${shortProjects[0].name}${' '.repeat(10)}`);
   });
 
-  it('fills the deleting name column highlight with trailing spaces', () => {
+  it('fills the deleting name column highlight exactly to the label width', () => {
     const element = ProjectList({
-      projects,
+      projects: shortProjects,
       selectedIndex: 0,
       isFocused: true,
       visibleHeight: 5,
       deletingIndex: 0,
-      width: 48,
+      width: 22,
     });
 
     const columns = getProjectColumns(element);
@@ -112,7 +122,7 @@ describe('ProjectList layout', () => {
 
     expect(nameText.props.backgroundColor).toBe('red');
     expect(nameText.props.bold).toBe(true);
-    expect(renderedName).toBe(`> ${projects[0].name}${' '.repeat(42)}`);
+    expect(renderedName).toBe(`> ${shortProjects[0].name}${' '.repeat(10)}`);
   });
 
   it('pads short count text inside the highlighted count column', () => {
