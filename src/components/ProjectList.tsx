@@ -55,6 +55,8 @@ export default function ProjectList({
         const selectedFg = isSelected && isFocused ? 'black' : undefined;
         const deletingBg = isDeleting ? 'red' : selectedBg;
         const deletingFg = isDeleting ? 'white' : selectedFg;
+        const nameColumnWidth = Math.max(0, COLUMN_WIDTH - COUNT_COLUMN_WIDTH);
+        const highlightedNameText = `${prefix}${project.name}${' '.repeat(nameColumnWidth)}`;
 
         return (
           <Box key={project.encodedPath} width={COLUMN_WIDTH}>
@@ -65,11 +67,12 @@ export default function ProjectList({
                 backgroundColor={deletingBg}
                 bold={isDeleting}
               >
-                {prefix}{project.name}
+                {highlightedNameText}
               </Text>
             </Box>
             <Box width={COUNT_COLUMN_WIDTH} flexShrink={0} justifyContent="flex-end">
               <Text
+                wrap="truncate"
                 color={deletingFg}
                 backgroundColor={deletingBg}
                 bold={isDeleting}
