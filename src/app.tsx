@@ -9,6 +9,7 @@ import ConfirmDialog from './components/ConfirmDialog.js';
 import { ClaudeProjectScanner } from './core/scanner.js';
 import { JsonlSessionParser } from './core/parser.js';
 import { SessionDeleter } from './core/deleter.js';
+import { PathEncoder } from './utils/path.js';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -18,7 +19,7 @@ import { homedir } from 'node:os';
 
 interface AppProps {
   projectPath?: string;
-  onSelectSession?: (uuid: string) => void;
+  onSelectSession?: (uuid: string, projectPath: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -366,7 +367,7 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
 
       // Enter - select session and exit
       if (key.return && currentSession) {
-        onSelectSession?.(currentSession.uuid);
+        onSelectSession?.(currentSession.uuid, PathEncoder.decode(currentSession.project.encodedPath));
         exit();
         return;
       }

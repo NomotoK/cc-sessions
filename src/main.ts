@@ -194,20 +194,22 @@ async function runDelete(uuid: string, projectPath?: string): Promise<void> {
 
 async function runTui(projectPath?: string, resumeFile?: string): Promise<void> {
   let selectedUuid: string | null = null;
+  let selectedProjectPath: string | null = null;
 
   const { waitUntilExit } = render(
     React.createElement(App, {
       projectPath,
-      onSelectSession: (uuid: string) => {
+      onSelectSession: (uuid: string, projectPath: string) => {
         selectedUuid = uuid;
+        selectedProjectPath = projectPath;
       },
     }),
   );
 
   await waitUntilExit();
 
-  if (selectedUuid && resumeFile) {
-    writeFileSync(resumeFile, selectedUuid);
+  if (selectedUuid && selectedProjectPath && resumeFile) {
+    writeFileSync(resumeFile, `${selectedProjectPath}\n${selectedUuid}`);
   }
 }
 

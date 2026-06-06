@@ -15,6 +15,10 @@ trap 'rm -f "$RESUME_FILE"' EXIT
 node "$DIST_DIR/main.js" --resume-file "$RESUME_FILE" "$@"
 
 if [ -s "$RESUME_FILE" ]; then
-  UUID=$(cat "$RESUME_FILE")
-  exec claude --resume "$UUID"
+  PROJECT_PATH=$(sed -n '1p' "$RESUME_FILE")
+  SESSION_UUID=$(sed -n '2p' "$RESUME_FILE")
+  if [ -n "$PROJECT_PATH" ] && [ -n "$SESSION_UUID" ]; then
+    cd "$PROJECT_PATH"
+    exec claude --resume "$SESSION_UUID"
+  fi
 fi
