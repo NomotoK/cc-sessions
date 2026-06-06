@@ -11,10 +11,7 @@ interface ProjectListProps {
   width: number;
 }
 
-function truncate(str: string, maxLength: number): string {
-  if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength - 1) + '…';
-}
+const COUNT_COLUMN_WIDTH = 6;
 
 export default function ProjectList({
   projects,
@@ -53,38 +50,33 @@ export default function ProjectList({
         const isSelected = actualIndex === selectedIndex;
         const isDeleting = deletingIndex === actualIndex;
         const prefix = isSelected && isFocused ? '> ' : '  ';
-        const maxNameLen = COLUMN_WIDTH - prefix.length - 5; // reserve space for " (N)"
-        const name = truncate(project.name, maxNameLen);
         const countStr = `(${project.sessionCount})`;
-
-        // Calculate padding to right-align count
-        const contentLen = prefix.length + name.length;
-        const padding = Math.max(1, COLUMN_WIDTH - contentLen - countStr.length);
-
-        if (isDeleting) {
-          return (
-            <Box key={project.encodedPath}>
-              <Text backgroundColor="red" color="white" bold>
-                {prefix}{name}{' '.repeat(padding)}{countStr}
-              </Text>
-            </Box>
-          );
-        }
+        const selectedBg = isSelected && isFocused ? 'cyan' : undefined;
+        const selectedFg = isSelected && isFocused ? 'black' : undefined;
+        const deletingBg = isDeleting ? 'red' : selectedBg;
+        const deletingFg = isDeleting ? 'white' : selectedFg;
 
         return (
-          <Box key={project.encodedPath}>
-            <Text
-              color={isSelected && isFocused ? 'black' : undefined}
-              backgroundColor={isSelected && isFocused ? 'cyan' : undefined}
-            >
-              {prefix}{name}
-            </Text>
-            <Text
-              color={isSelected && isFocused ? 'black' : undefined}
-              backgroundColor={isSelected && isFocused ? 'cyan' : undefined}
-            >
-              {' '.repeat(padding)}{countStr}
-            </Text>
+          <Box key={project.encodedPath} width={COLUMN_WIDTH}>
+            <Box flexGrow={1} overflowX="hidden">
+              <Text
+                wrap="truncate"
+                color={deletingFg}
+                backgroundColor={deletingBg}
+                bold={isDeleting}
+              >
+                {prefix}{project.name}
+              </Text>
+            </Box>
+            <Box width={COUNT_COLUMN_WIDTH} flexShrink={0} justifyContent="flex-end">
+              <Text
+                color={deletingFg}
+                backgroundColor={deletingBg}
+                bold={isDeleting}
+              >
+                {countStr}
+              </Text>
+            </Box>
           </Box>
         );
       })}
