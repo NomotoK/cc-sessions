@@ -31,13 +31,13 @@ const initialState: AppState = {
   sessions: [],
   selectedProjectIndex: 0,
   selectedSessionIndex: 0,
-  markedSessions: new Set(),
   focusedPane: 'project',
   searchQuery: '',
   searchActive: false,
   confirmDialog: null,
   loading: true,
   error: null,
+  deletingIndex: null,
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -56,7 +56,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         sessions: action.sessions,
         selectedSessionIndex: 0,
-        markedSessions: new Set(),
         searchQuery: '',
         searchActive: false,
       };
@@ -70,7 +69,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         selectedProjectIndex: action.index,
         selectedSessionIndex: 0,
-        markedSessions: new Set(),
         searchQuery: '',
         searchActive: false,
       };
@@ -81,19 +79,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         selectedSessionIndex: action.index,
       };
-
-    case 'TOGGLE_MARK': {
-      const next = new Set(state.markedSessions);
-      if (next.has(action.uuid)) {
-        next.delete(action.uuid);
-      } else {
-        next.add(action.uuid);
-      }
-      return { ...state, markedSessions: next };
-    }
-
-    case 'CLEAR_MARKS':
-      return { ...state, markedSessions: new Set() };
 
     case 'TOGGLE_PANE': {
       if (state.sessions.length === 0 && state.focusedPane === 'project') {
@@ -115,13 +100,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, confirmDialog: action.action };
 
     case 'HIDE_CONFIRM':
-      return { ...state, confirmDialog: null };
+      return { ...state, confirmDialog: null, deletingIndex: null };
 
     case 'SET_LOADING':
       return { ...state, loading: action.loading };
 
     case 'SET_ERROR':
       return { ...state, error: action.error, loading: false };
+
+    case 'SET_DELETING_INDEX':
+      return { ...state, deletingIndex: action.index };
 
     case 'DELETE_SESSIONS': {
       const uuidsToDelete = new Set(action.uuids);
@@ -145,8 +133,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         sessions: remaining,
         selectedSessionIndex: newIndex,
-        markedSessions: new Set(),
         confirmDialog: null,
+        deletingIndex: null,
         projects: updatedProjects,
       };
     }
@@ -165,8 +153,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         projects: remainingProjects,
         selectedProjectIndex: newIndex,
         selectedSessionIndex: 0,
-        markedSessions: new Set(),
         confirmDialog: null,
+        deletingIndex: null,
       };
     }
 
@@ -361,6 +349,22 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
       return;
     }
 
+    // Left arrow - switch to project pane
+    if (key.leftArrow) {
+      if (state.focusedPane !== 'project') {
+        dispatch({ type: 'TOGGLE_PANE' });
+      }
+      return;
+    }
+
+    // Right arrow - switch to session pane
+    if (key.rightArrow) {
+      if (state.focusedPane !== 'session' && filteredSessions.length > 0) {
+        dispatch({ type: 'TOGGLE_PANE' });
+      }
+      return;
+    }
+
     // Session pane shortcuts
     if (state.focusedPane === 'session') {
       const currentSession = filteredSessions[state.selectedSessionIndex];
@@ -372,24 +376,13 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
         return;
       }
 
-      // Space - toggle mark
-      if (input === ' ' && currentSession) {
-        dispatch({ type: 'TOGGLE_MARK', uuid: currentSession.uuid });
-        return;
-      }
-
-      // D - delete marked or current session
-      if (input === 'D') {
-        const targets =
-          state.markedSessions.size > 0
-            ? state.sessions.filter((s) => state.markedSessions.has(s.uuid))
-            : currentSession
-              ? [currentSession]
-              : [];
-        if (targets.length > 0) {
+      // Ctrl+D - delete current session
+      if (key.ctrl && input === 'd') {
+        if (currentSession) {
+          dispatch({ type: 'SET_DELETING_INDEX', index: state.selectedSessionIndex });
           dispatch({
             type: 'SHOW_CONFIRM',
-            action: { type: 'delete-sessions', targets },
+            action: { type: 'delete-sessions', targets: [currentSession] },
           });
         }
         return;
@@ -410,9 +403,10 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
 
     // Project pane shortcuts
     if (state.focusedPane === 'project') {
-      // D (uppercase only) - delete all project sessions
-      if (input === 'D') {
+      // Ctrl+D - delete all project sessions
+      if (key.ctrl && input === 'd') {
         if (currentProject && state.sessions.length > 0) {
+          dispatch({ type: 'SET_DELETING_INDEX', index: state.selectedProjectIndex });
           dispatch({
             type: 'SHOW_CONFIRM',
             action: {
@@ -440,16 +434,21 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
 
   // ----- Loading / error states -----
   if (state.loading) {
-    return <Text>扫描会话中...</Text>;
+    return <Text>Scanning sessions...</Text>;
   }
 
   if (state.error) {
-    return <Text color="red">错误: {state.error}</Text>;
+    return <Text color="red">Error: {state.error}</Text>;
   }
 
   if (state.projects.length === 0) {
-    return <Text>没有发现任何会话。</Text>;
+    return <Text>No sessions found.</Text>;
   }
+
+  // Determine which index is pending deletion (for red highlight)
+  // When in session pane, deletingIndex refers to a session; in project pane, to a project.
+  const sessionDeletingIndex = state.focusedPane === 'session' ? state.deletingIndex : null;
+  const projectDeletingIndex = state.focusedPane === 'project' ? state.deletingIndex : null;
 
   // ----- Render -----
   return (
@@ -460,6 +459,7 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
           selectedIndex={state.selectedProjectIndex}
           isFocused={state.focusedPane === 'project'}
           visibleHeight={projectListHeight}
+          deletingIndex={projectDeletingIndex}
         />
         <Box flexDirection="column" flexGrow={1}>
           <SearchBar
@@ -478,9 +478,9 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
           <SessionList
             sessions={filteredSessions}
             selectedIndex={state.selectedSessionIndex}
-            markedSessions={state.markedSessions}
             isFocused={state.focusedPane === 'session'}
             visibleHeight={projectListHeight}
+            deletingIndex={sessionDeletingIndex}
           />
         </Box>
       </Box>

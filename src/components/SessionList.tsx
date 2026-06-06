@@ -5,9 +5,9 @@ import type { Session, LabelSource } from '../core/types.js';
 interface SessionListProps {
   sessions: Session[];
   selectedIndex: number;
-  markedSessions: Set<string>;
   isFocused: boolean;
   visibleHeight: number;
+  deletingIndex: number | null;
 }
 
 function formatSize(bytes: number): string {
@@ -18,22 +18,21 @@ function formatSize(bytes: number): string {
 }
 
 function formatDate(date: Date): string {
-  const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   const h = String(date.getHours()).padStart(2, '0');
   const min = String(date.getMinutes()).padStart(2, '0');
-  return `${y}-${m}-${d} ${h}:${min}`;
+  return `${m}-${d} ${h}:${min}`;
 }
 
-function labelIcon(source: LabelSource): string {
+function labelIcon(source: LabelSource): { char: string; color: string } {
   switch (source) {
     case 'custom-title':
-      return '★';
+      return { char: '*', color: 'yellow' };
     case 'ai-title':
-      return '●';
+      return { char: '#', color: 'blue' };
     default:
-      return ' ';
+      return { char: ' ', color: '' };
   }
 }
 
@@ -45,20 +44,20 @@ function truncate(str: string, maxLength: number): string {
 export default function SessionList({
   sessions,
   selectedIndex,
-  markedSessions,
   isFocused,
   visibleHeight,
+  deletingIndex,
 }: SessionListProps): React.ReactElement {
   if (sessions.length === 0) {
     return (
       <Box flexDirection="column" flexGrow={1}>
-        <Text dimColor>没有会话</Text>
+        <Text dimColor>No sessions</Text>
       </Box>
     );
   }
 
-  // Each session takes 2 lines, so visible session count is half the visible height
-  const sessionsPerScreen = Math.max(1, Math.floor(visibleHeight / 2));
+  // Each session takes 1 line
+  const sessionsPerScreen = Math.max(1, visibleHeight);
   const halfScreen = Math.floor(sessionsPerScreen / 2);
   let startIndex = Math.max(0, selectedIndex - halfScreen);
   const maxStartIndex = Math.max(0, sessions.length - sessionsPerScreen);
@@ -72,41 +71,49 @@ export default function SessionList({
       {visibleSessions.map((session, i) => {
         const actualIndex = startIndex + i;
         const isSelected = actualIndex === selectedIndex;
-        const isMarked = markedSessions.has(session.uuid);
-        const mark = isMarked ? '[x]' : '[ ]';
+        const isDeleting = deletingIndex === actualIndex;
         const icon = labelIcon(session.labelSource);
-        const label = truncate(session.label, 40);
+        const metaStr = `${formatDate(session.modifiedAt)}  ${formatSize(session.size)}`;
+        const labelMaxLen = 30;
+        const label = truncate(session.label, labelMaxLen);
+
+        // Build the label part: icon + space + label
+        const labelText = `${icon.char} ${label}`;
+
+        if (isDeleting) {
+          return (
+            <Box key={session.uuid} justifyContent="space-between">
+              <Text backgroundColor="red" color="white" bold>
+                {labelText}
+              </Text>
+              <Text backgroundColor="red" color="white" bold>
+                {metaStr}
+              </Text>
+            </Box>
+          );
+        }
+
+        const selectedBg = isSelected && isFocused ? 'cyan' : undefined;
+        const selectedFg = isSelected && isFocused ? 'black' : undefined;
 
         return (
-          <Box key={session.uuid} flexDirection="column">
-            {/* Line 1: mark + icon + label + active badge */}
-            <Box>
-              <Text
-                color={isSelected && isFocused ? 'black' : undefined}
-                backgroundColor={isSelected && isFocused ? 'cyan' : undefined}
-              >
-                {mark}{icon} {label}
-              </Text>
+          <Box key={session.uuid} justifyContent="space-between">
+            <Text color={selectedFg} backgroundColor={selectedBg}>
+              {icon.char === ' ' ? (
+                <Text color={selectedFg} backgroundColor={selectedBg}>{'  '}</Text>
+              ) : (
+                <Text color={isSelected && isFocused ? selectedFg : icon.color} backgroundColor={selectedBg}>{icon.char}</Text>
+              )}
+              <Text color={selectedFg} backgroundColor={selectedBg}>{' '}{label}</Text>
               {session.isActive && (
-                <Text
-                  color={isSelected && isFocused ? 'black' : 'green'}
-                  backgroundColor={isSelected && isFocused ? 'cyan' : undefined}
-                >
-                  {' '}●活跃
+                <Text color={isSelected && isFocused ? 'black' : 'green'} backgroundColor={selectedBg}>
+                  {' *'}
                 </Text>
               )}
-            </Box>
-
-            {/* Line 2: date + size */}
-            <Box>
-              <Text
-                color={isSelected && isFocused ? 'black' : undefined}
-                backgroundColor={isSelected && isFocused ? 'cyan' : undefined}
-                dimColor={!isSelected || !isFocused}
-              >
-                {'     '}{formatDate(session.modifiedAt)}  {formatSize(session.size)}
-              </Text>
-            </Box>
+            </Text>
+            <Text color={selectedFg} backgroundColor={selectedBg} dimColor={!isSelected || !isFocused}>
+              {metaStr}
+            </Text>
           </Box>
         );
       })}

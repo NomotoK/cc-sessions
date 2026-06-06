@@ -41,13 +41,13 @@ export interface AppState {
   sessions: Session[];
   selectedProjectIndex: number;
   selectedSessionIndex: number;
-  markedSessions: Set<string>;
   focusedPane: FocusedPane;
   searchQuery: string;
   searchActive: boolean;
   confirmDialog: ConfirmAction | null;
   loading: boolean;
   error: string | null;
+  deletingIndex: number | null;
 }
 
 export type AppAction =
@@ -55,9 +55,8 @@ export type AppAction =
   | { type: 'SET_SESSIONS'; sessions: Session[] }
   | { type: 'SELECT_PROJECT'; index: number }
   | { type: 'SELECT_SESSION'; index: number }
-  | { type: 'TOGGLE_MARK'; uuid: string }
-  | { type: 'CLEAR_MARKS' }
   | { type: 'TOGGLE_PANE' }
+  | { type: 'SET_DELETING_INDEX'; index: number | null }
   | { type: 'SET_SEARCH'; query: string }
   | { type: 'SET_SEARCH_ACTIVE'; active: boolean }
   | { type: 'SHOW_CONFIRM'; action: ConfirmAction }

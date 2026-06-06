@@ -7,6 +7,7 @@ interface ProjectListProps {
   selectedIndex: number;
   isFocused: boolean;
   visibleHeight: number;
+  deletingIndex: number | null;
 }
 
 function truncate(str: string, maxLength: number): string {
@@ -19,7 +20,10 @@ export default function ProjectList({
   selectedIndex,
   isFocused,
   visibleHeight,
+  deletingIndex,
 }: ProjectListProps): React.ReactElement {
+  const COLUMN_WIDTH = 28;
+
   // Calculate scroll window
   const halfHeight = Math.floor(visibleHeight / 2);
   let startIndex = Math.max(0, selectedIndex - halfHeight);
@@ -30,20 +34,40 @@ export default function ProjectList({
   const visibleProjects = projects.slice(startIndex, endIndex);
 
   return (
-    <Box flexDirection="column" width={22}>
+    <Box flexDirection="column" width={COLUMN_WIDTH}>
       {/* Header */}
       <Box>
-        <Text bold={isFocused} backgroundColor={isFocused ? 'cyan' : undefined} color={isFocused ? 'black' : undefined}>
-          {' Projects '}
-        </Text>
+        <Text bold color="cyan">{' Projects'}</Text>
+      </Box>
+
+      {/* Blank line after title */}
+      <Box>
+        <Text>{' '}</Text>
       </Box>
 
       {/* Project items */}
       {visibleProjects.map((project, i) => {
         const actualIndex = startIndex + i;
         const isSelected = actualIndex === selectedIndex;
+        const isDeleting = deletingIndex === actualIndex;
         const prefix = isSelected && isFocused ? '> ' : '  ';
-        const name = truncate(project.name, 16);
+        const maxNameLen = COLUMN_WIDTH - prefix.length - 5; // reserve space for " (N)"
+        const name = truncate(project.name, maxNameLen);
+        const countStr = `(${project.sessionCount})`;
+
+        // Calculate padding to right-align count
+        const contentLen = prefix.length + name.length;
+        const padding = Math.max(1, COLUMN_WIDTH - contentLen - countStr.length);
+
+        if (isDeleting) {
+          return (
+            <Box key={project.encodedPath}>
+              <Text backgroundColor="red" color="white" bold>
+                {prefix}{name}{' '.repeat(padding)}{countStr}
+              </Text>
+            </Box>
+          );
+        }
 
         return (
           <Box key={project.encodedPath}>
@@ -53,7 +77,12 @@ export default function ProjectList({
             >
               {prefix}{name}
             </Text>
-            <Text dimColor> {project.sessionCount}</Text>
+            <Text
+              color={isSelected && isFocused ? 'black' : undefined}
+              backgroundColor={isSelected && isFocused ? 'cyan' : undefined}
+            >
+              {' '.repeat(padding)}{countStr}
+            </Text>
           </Box>
         );
       })}

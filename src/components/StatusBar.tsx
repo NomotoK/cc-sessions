@@ -12,7 +12,7 @@ export default function StatusBar({ focusedPane, searchActive, confirmVisible }:
   if (confirmVisible) {
     return (
       <Box borderStyle="single" borderColor="gray" paddingX={1}>
-        <Text>[y] 确认删除    [Esc/N] 取消</Text>
+        <Text><Text dimColor>[y]</Text> confirm delete    <Text dimColor>[Esc/N]</Text> cancel</Text>
       </Box>
     );
   }
@@ -20,24 +20,34 @@ export default function StatusBar({ focusedPane, searchActive, confirmVisible }:
   if (searchActive) {
     return (
       <Box borderStyle="single" borderColor="gray" paddingX={1}>
-        <Text>[Enter] 确认搜索    [Esc] 取消搜索</Text>
+        <Text><Text dimColor>[Enter]</Text> search    <Text dimColor>[Esc]</Text> cancel</Text>
       </Box>
     );
   }
 
-  const shortcuts: string[] = ['↑↓/jk 浏览', 'Tab 切换栏'];
+  const parts: React.ReactElement[] = [];
 
+  // navigate
+  parts.push(<Text key="nav"><Text dimColor>[up/dn/jk]</Text> navigate</Text>);
+
+  // switch pane
+  parts.push(<Text key="pane"><Text dimColor>[Tab/LR]</Text> switch pane</Text>);
+
+  // pane-specific shortcuts
   if (focusedPane === 'session') {
-    shortcuts.push('Enter 恢复', 'Space 标记', 'D 删除', '/ 搜索');
+    parts.push(<Text key="resume"><Text dimColor>[Enter]</Text> resume</Text>);
+    parts.push(<Text key="del"><Text dimColor>[Ctrl+D]</Text> delete</Text>);
+    parts.push(<Text key="search"><Text dimColor>[/]</Text> search</Text>);
   } else {
-    shortcuts.push('Shift+D 删除项目全部');
+    parts.push(<Text key="delall"><Text dimColor>[Ctrl+D]</Text> delete all</Text>);
   }
 
-  shortcuts.push('q 退出');
+  // quit
+  parts.push(<Text key="quit"><Text dimColor>[q]</Text> quit</Text>);
 
   return (
-    <Box borderStyle="single" borderColor="gray" paddingX={1}>
-      <Text>{shortcuts.join('  ')}</Text>
+    <Box borderStyle="single" borderColor="gray" paddingX={1} gap={2}>
+      {parts}
     </Box>
   );
 }

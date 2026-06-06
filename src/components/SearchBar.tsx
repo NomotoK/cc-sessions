@@ -21,21 +21,21 @@ export default function SearchBar({
 }: SearchBarProps): React.ReactElement {
   return (
     <Box>
-      <Text bold>Sessions: </Text>
+      <Text bold color="cyan">Sessions: </Text>
       <Text color="cyan">{projectName}</Text>
       <Text> </Text>
       {active ? (
         <>
-          <Text>🔍</Text>
+          <Text>{'>'}</Text>
           <TextInput
             value={query}
             onChange={onQueryChange}
             onSubmit={onSubmit}
-            placeholder="输入搜索关键词..."
+            placeholder="type to search..."
           />
         </>
       ) : (
-        <Text dimColor>{query || '按 / 搜索'}</Text>
+        <Text dimColor>{query || 'press / to search'}</Text>
       )}
     </Box>
   );
