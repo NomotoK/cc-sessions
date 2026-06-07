@@ -29,7 +29,7 @@ export default function ProjectList({
   deletingIndex,
   width,
 }: ProjectListProps): React.ReactElement {
-  const COLUMN_WIDTH = width;
+  const paneWidth = width;
 
   // Calculate scroll window
   const halfHeight = Math.floor(visibleHeight / 2);
@@ -41,7 +41,7 @@ export default function ProjectList({
   const visibleProjects = projects.slice(startIndex, endIndex);
 
   return (
-    <Box flexDirection="column" width={COLUMN_WIDTH}>
+    <Box flexDirection="column" width={paneWidth}>
       {/* Header */}
       <Box>
         <Text bold color="cyan">{' Projects'}</Text>
@@ -63,12 +63,12 @@ export default function ProjectList({
         const selectedFg = isSelected && isFocused ? 'black' : undefined;
         const deletingBg = isDeleting ? 'red' : selectedBg;
         const deletingFg = isDeleting ? 'white' : selectedFg;
-        const nameColumnWidth = Math.max(0, COLUMN_WIDTH - COUNT_COLUMN_WIDTH);
+        const nameColumnWidth = Math.max(0, paneWidth - COUNT_COLUMN_WIDTH);
         // Ink backgrounds apply to Text, so filler spaces keep row highlights continuous.
         const highlightedNameText = fillToDisplayWidth(`${prefix}${project.name}`, nameColumnWidth);
 
         return (
-          <Box key={project.encodedPath} width={COLUMN_WIDTH}>
+          <Box key={project.encodedPath} width={paneWidth}>
             <Box flexGrow={1} overflowX="hidden">
               <Text
                 wrap="truncate"

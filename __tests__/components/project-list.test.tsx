@@ -51,6 +51,22 @@ describe('ProjectList layout', () => {
     expect(element.props.width).toBe(22);
   });
 
+  it('keeps project rows at the explicit pane width in small windows', () => {
+    const element = ProjectList({
+      projects: shortProjects,
+      selectedIndex: 0,
+      isFocused: true,
+      visibleHeight: 5,
+      deletingIndex: null,
+      width: 20,
+    });
+
+    const item = getProjectItem(element);
+
+    expect(element.props.width).toBe(20);
+    expect(item.props.width).toBe(20);
+  });
+
   it('renders project name and count as separate fixed columns', () => {
     const element = ProjectList({
       projects,
