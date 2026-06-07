@@ -26,6 +26,23 @@ export function calculateProjectPaneWidth(terminalColumns?: number): number {
   );
 }
 
+export interface PaneWidths {
+  projectPaneWidth: number;
+  sessionPaneWidth: number;
+}
+
+export function calculatePaneWidths(terminalColumns?: number): PaneWidths {
+  const columns = terminalColumns && terminalColumns > 0
+    ? terminalColumns
+    : DEFAULT_TERMINAL_WIDTH;
+  const projectPaneWidth = calculateProjectPaneWidth(columns);
+
+  return {
+    projectPaneWidth,
+    sessionPaneWidth: Math.max(0, columns - projectPaneWidth),
+  };
+}
+
 function isCombiningCodePoint(codePoint: number): boolean {
   return (
     (codePoint >= 0x0300 && codePoint <= 0x036f) ||

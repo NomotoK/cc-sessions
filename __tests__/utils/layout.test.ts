@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  calculatePaneWidths,
   calculateProjectPaneWidth,
   fillToDisplayWidth,
   getDisplayWidth,
@@ -25,6 +26,49 @@ describe('calculateProjectPaneWidth', () => {
 
   it('falls back to a normal terminal width when stdout columns are unavailable', () => {
     expect(calculateProjectPaneWidth(undefined)).toBe(22);
+  });
+});
+
+describe('calculatePaneWidths', () => {
+  it('splits a 120-column terminal into explicit project and session widths', () => {
+    expect(calculatePaneWidths(120)).toEqual({
+      projectPaneWidth: 32,
+      sessionPaneWidth: 88,
+    });
+  });
+
+  it('splits a 160-column terminal while keeping total width unchanged', () => {
+    const widths = calculatePaneWidths(160);
+
+    expect(widths).toEqual({
+      projectPaneWidth: 32,
+      sessionPaneWidth: 128,
+    });
+    expect(widths.projectPaneWidth + widths.sessionPaneWidth).toBe(160);
+  });
+
+  it('splits the observed 183-column threshold without losing columns', () => {
+    const widths = calculatePaneWidths(183);
+
+    expect(widths).toEqual({
+      projectPaneWidth: 32,
+      sessionPaneWidth: 151,
+    });
+    expect(widths.projectPaneWidth + widths.sessionPaneWidth).toBe(183);
+  });
+
+  it('keeps the session pane non-negative below the normal supported width', () => {
+    expect(calculatePaneWidths(60)).toEqual({
+      projectPaneWidth: 20,
+      sessionPaneWidth: 40,
+    });
+  });
+
+  it('uses the default terminal width when columns are unavailable', () => {
+    expect(calculatePaneWidths(undefined)).toEqual({
+      projectPaneWidth: 22,
+      sessionPaneWidth: 58,
+    });
   });
 });
 
