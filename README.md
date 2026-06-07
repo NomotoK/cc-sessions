@@ -1,6 +1,8 @@
 <div align="center">
 
-# claude-code-session-cleaner
+# cc-sessions
+
+[![Version](https://img.shields.io/npm/v/cc-sessions.svg)](https://www.npmjs.com/package/cc-sessions)
 
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](./LICENSE)
 [![Language](https://img.shields.io/badge/language-Bash-4EAA25.svg)](https://www.gnu.org/software/bash/)
@@ -9,157 +11,113 @@
 
 </div>
 
----
-
-## Project Overview
-
-`claude-code-session-cleaner` lists and deletes Claude Code CLI session files
-from `~/.claude/projects/`. It is a local cleanup helper for saved sessions and
-can run as either:
-
-- a standalone interactive shell script
-- a Claude Code slash command: `/delete-session`
-
-The tool uses the same practical labels you see in `/resume`, so you can delete
-old sessions by title, recent prompt, project, or UUID prefix without manually
-digging through encoded project directories.
+A terminal UI for managing [Claude Code](https://claude.ai/code) sessions. Browse, search, delete, and resume sessions from an interactive two-pane interface.
 
 ## Features
 
-- Lists sessions newest first for the current project by default.
-- Supports `--all` to scan every Claude Code project.
-- Shows index, modified time, project name, file size, UUID prefix, and label.
-- Uses label priority compatible with `/resume`: custom title, last prompt, then
-  fallback user message.
-- Deletes the selected `.jsonl` file and its sibling `<uuid>/` artifact
-  directory.
-- Refuses to delete sessions modified in the last 10 minutes to avoid removing
-  an active session.
-- Resolves UUID prefixes safely and refuses ambiguous matches.
-- Installs both the shell script and Claude Code slash command with one command.
+- **Two-pane TUI** — project list on the left, session list on the right
+- **Session resume** — select a session and jump straight back into `claude --resume`
+- **Smart labels** — session titles resolved from custom title, AI title, last prompt, or first message
+- **Search** — filter sessions by label with `/`
+- **Batch delete** — mark sessions with `Space`, then delete with `D`; or delete all sessions under a project
+- **Active detection** — sessions modified within 10 minutes are flagged as active and protected from deletion
+- **JSON output** — `cc-sessions list` prints all sessions as JSON for scripting
 
-## Project Structure
+## Prerequisites
 
-```text
-.
-├── commands/
-│   └── delete-session.md      # Claude Code slash command
-├── scripts/
-│   └── delete-session.sh      # Session listing and deletion script
-├── install.sh                 # Installer for ~/.claude/scripts and ~/.claude/commands
-├── LICENSE
-├── README.md
-└── README_CN.md
-```
+- Node.js >= 18.0.0
+- [Claude Code CLI](https://claude.ai/code) (for session resume)
 
-## Requirements
-
-- macOS shell environment
-- Bash 3.2 or newer
-- `jq`
-- Claude Code session data under `~/.claude/projects/`
-
-Install `jq` on macOS:
+## Install
 
 ```bash
-brew install jq
+# Clone the repository
+git clone <repo-url> cc-sessions
+cd cc-sessions
+
+# Install dependencies
+npm install
+
+# Build
+npm run build
 ```
-
-## Quick Start
-
-Clone the repository and install the script plus slash command:
-
-```bash
-git clone https://github.com/ihoooohi/claude-code-session-cleaner.git
-cd claude-code-session-cleaner
-./install.sh
-```
-
-The installer copies:
-
-- `scripts/delete-session.sh` to `~/.claude/scripts/delete-session.sh`
-- `commands/delete-session.md` to `~/.claude/commands/delete-session.md`
-
-It will not overwrite existing files unless you pass `--force`.
 
 ## Usage
 
-Run interactively from a terminal:
+### TUI Mode (default)
 
 ```bash
-~/.claude/scripts/delete-session.sh
+cc-sessions
 ```
 
-List sessions without deleting anything:
+Launches the interactive terminal interface. Select a session and press `Enter` to resume it in Claude Code.
+
+### List Mode
 
 ```bash
-~/.claude/scripts/delete-session.sh list
-~/.claude/scripts/delete-session.sh list fix-v2
-~/.claude/scripts/delete-session.sh --all list
-~/.claude/scripts/delete-session.sh --project /path/to/project list
+cc-sessions list
 ```
 
-Delete by UUID or UUID prefix:
+Outputs all sessions as a JSON array. Useful for scripting and automation.
+
+### Delete Mode
 
 ```bash
-~/.claude/scripts/delete-session.sh delete 9c8dbd97
+cc-sessions delete <uuid>
 ```
 
-Use it inside Claude Code:
+Deletes a session by UUID prefix. Active sessions are skipped.
 
-```text
-/delete-session
-/delete-session fix-v2
-/delete-session --all
-/delete-session 9c8dbd97
-```
-
-## Core Flow
-
-1. The script derives the current project from `$PWD`, unless you pass `--all`
-   or `--project`.
-2. It maps the project path to Claude Code's encoded directory format under
-   `~/.claude/projects/`.
-3. It reads only top-level `*.jsonl` session files, not nested artifact files.
-4. It builds labels from session records in this order:
-   `custom-title`, `last-prompt`, then the last non-wrapper user message.
-5. It renders a numbered list for review.
-6. On deletion, it confirms the target, refuses active sessions, removes the
-   main `.jsonl`, and removes the sibling `<uuid>/` artifact directory if it
-   exists.
-
-## Minimal Example
-
-Example list output:
-
-```text
-[  1] 2026-04-24 18:17  EchoCenter           728K  bcf9c007...  Update map labels
-[  2] 2026-04-24 08:02  EchoCenter            24K  34738f62...  Pull the latest repo
-[  3] 2026-04-22 10:07  HERTCERT              31M  9f362cce...  ★ fix-v2-production-stability
-```
-
-Interactive deletion accepts individual indexes and ranges:
-
-```text
-Enter indexes to delete (e.g. '1 3 5' or '1-4'; empty to quit): 2 5-7
-```
-
-## Safety Notes
-
-- The active-session guard refuses sessions modified less than 10 minutes ago.
-- `delete <uuid-prefix>` refuses if the prefix matches zero or multiple files.
-- The slash command asks for confirmation before calling the deletion script.
-- Linux is not verified because the script currently uses BSD/macOS `stat` and
-  `date` flags.
-- There is no undo. Deleted files are removed with `rm`.
-
-## Uninstall
+### Filter by Project
 
 ```bash
-rm ~/.claude/scripts/delete-session.sh
-rm ~/.claude/commands/delete-session.md
+cc-sessions --project /path/to/project
+cc-sessions list --project /path/to/project
 ```
+
+### Other Options
+
+```bash
+cc-sessions --help       # Show help
+cc-sessions --version    # Show version
+```
+
+## Keybindings
+
+| Key | Action |
+|---|---|
+| `↑` / `k` | Move up |
+| `↓` / `j` | Move down |
+| `Tab` | Toggle project/session pane |
+| `Enter` | Resume selected session (session pane) / Switch to session pane (project pane) |
+| `Space` | Mark/unmark session for deletion |
+| `D` | Delete marked sessions (session pane) / Delete all project sessions (project pane) |
+| `Ctrl+D` | Delete current session or project sessions |
+| `/` | Activate search |
+| `Esc` | Cancel search / Switch to project pane |
+| `q` | Quit |
+
+## How It Works
+
+`cc-sessions` reads session data from `~/.claude/projects/`, where Claude Code stores session files as `.jsonl`. It parses metadata from each file (custom titles, AI-generated titles, prompts) and presents them in an interactive interface.
+
+The shell wrapper (`bin/cc-sessions.sh`) handles session resumption: after the TUI exits, it reads the selected session's project path and UUID from a temp file, then runs `claude --resume <uuid>` in the project directory.
+
+## Development
+
+```bash
+npm run dev          # Build in watch mode
+npm test             # Run tests
+npm run test:watch   # Run tests in watch mode
+```
+
+## Tech Stack
+
+- [React](https://react.dev/) + [Ink](https://github.com/vadimdemedes/ink) — Terminal UI
+- [TypeScript](https://www.typescriptlang.org/) — Language
+- [tsup](https://tsup.egoist.dev/) — Build tool
+- [Vitest](https://vitest.dev/) — Testing
 
 ## License
 
-This project is released under the [MIT License](./LICENSE).
+MIT

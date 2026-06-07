@@ -1,6 +1,8 @@
 <div align="center">
 
-# claude-code-session-cleaner
+# cc-sessions
+
+[![Version](https://img.shields.io/npm/v/cc-sessions.svg)](https://www.npmjs.com/package/cc-sessions)
 
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](./LICENSE)
 [![Language](https://img.shields.io/badge/language-Bash-4EAA25.svg)](https://www.gnu.org/software/bash/)
@@ -9,147 +11,114 @@
 
 </div>
 
----
 
-## 项目概览
+一个用于管理 [Claude Code](https://claude.ai/code) 会话的终端界面工具。通过交互式双栏界面浏览、搜索、删除和恢复会话。
 
-`claude-code-session-cleaner` 用于列出并删除 `~/.claude/projects/` 下的
-Claude Code CLI 历史 session 文件。它是一个本地 session 清理工具，支持两种方式：
+## 功能
 
-- 独立的交互式 shell 脚本
-- Claude Code 斜杠命令：`/delete-session`
+- **双栏 TUI** — 左侧项目列表，右侧会话列表
+- **会话恢复** — 选择会话后自动执行 `claude --resume` 恢复对话
+- **智能标签** — 按自定义标题、AI 标题、最后提示词、首条消息的优先级解析会话标题
+- **搜索过滤** — 使用 `/` 按标签过滤会话
+- **批量删除** — 用 `Space` 标记会话后按 `D` 删除；也可一键删除项目下所有会话
+- **活跃检测** — 10 分钟内有修改的会话标记为活跃，删除时自动跳过
+- **JSON 输出** — `cc-sessions list` 以 JSON 格式输出所有会话，便于脚本集成
 
-工具会尽量使用你在 `/resume` 中看到的同类标签，因此可以按标题、最近提示词、项目或 UUID
-前缀识别并删除旧 session，而不需要手动查找编码后的项目目录。
+## 前置条件
 
-## 功能特性
+- Node.js >= 18.0.0
+- [Claude Code CLI](https://claude.ai/code)（用于恢复会话）
 
-- 默认只列出当前项目的 session，并按修改时间从新到旧排序。
-- 支持 `--all` 扫描所有 Claude Code 项目。
-- 显示序号、修改时间、项目名、文件大小、UUID 前缀和标签。
-- 标签优先级与 `/resume` 的实际表现保持一致：自定义标题、最近提示词、兜底用户消息。
-- 删除选中的 `.jsonl` 文件，并同步清理同名 `<uuid>/` 衍生产物目录。
-- 拒绝删除最近 10 分钟内修改过的 session，避免误删活跃 session。
-- 安全解析 UUID 前缀，遇到歧义匹配会拒绝执行。
-- 一条安装命令同时安装 shell 脚本和 Claude Code 斜杠命令。
-
-## 项目结构
-
-```text
-.
-├── commands/
-│   └── delete-session.md      # Claude Code 斜杠命令
-├── scripts/
-│   └── delete-session.sh      # session 列出与删除脚本
-├── install.sh                 # 安装到 ~/.claude/scripts 和 ~/.claude/commands
-├── LICENSE
-├── README.md
-└── README_CN.md
-```
-
-## 环境要求
-
-- macOS shell 环境
-- Bash 3.2 或更新版本
-- `jq`
-- `~/.claude/projects/` 下已有 Claude Code session 数据
-
-macOS 安装 `jq`：
+## 安装
 
 ```bash
-brew install jq
+# 克隆仓库
+git clone <repo-url> cc-sessions
+cd cc-sessions
+
+# 安装依赖
+npm install
+
+# 构建
+npm run build
 ```
-
-## 快速开始
-
-克隆仓库并安装脚本和斜杠命令：
-
-```bash
-git clone https://github.com/ihoooohi/claude-code-session-cleaner.git
-cd claude-code-session-cleaner
-./install.sh
-```
-
-安装脚本会复制：
-
-- `scripts/delete-session.sh` 到 `~/.claude/scripts/delete-session.sh`
-- `commands/delete-session.md` 到 `~/.claude/commands/delete-session.md`
-
-除非传入 `--force`，否则不会覆盖已有文件。
 
 ## 使用方法
 
-在终端中交互式运行：
+### TUI 模式（默认）
 
 ```bash
-~/.claude/scripts/delete-session.sh
+cc-sessions
 ```
 
-只列出 session，不删除任何内容：
+启动交互式终端界面。选择会话后按 `Enter` 即可在 Claude Code 中恢复该会话。
+
+### 列表模式
 
 ```bash
-~/.claude/scripts/delete-session.sh list
-~/.claude/scripts/delete-session.sh list fix-v2
-~/.claude/scripts/delete-session.sh --all list
-~/.claude/scripts/delete-session.sh --project /path/to/project list
+cc-sessions list
 ```
 
-按 UUID 或 UUID 前缀删除：
+以 JSON 数组格式输出所有会话，适合脚本和自动化场景。
+
+### 删除模式
 
 ```bash
-~/.claude/scripts/delete-session.sh delete 9c8dbd97
+cc-sessions delete <uuid>
 ```
 
-在 Claude Code 中使用：
+通过 UUID 前缀删除指定会话。活跃会话会被自动跳过。
 
-```text
-/delete-session
-/delete-session fix-v2
-/delete-session --all
-/delete-session 9c8dbd97
-```
-
-## 核心流程
-
-1. 脚本默认从 `$PWD` 推导当前项目，除非传入 `--all` 或 `--project`。
-2. 它把项目路径映射为 Claude Code 在 `~/.claude/projects/` 下使用的编码目录名。
-3. 它只读取顶层 `*.jsonl` 主 session 文件，不会把嵌套的衍生产物当成独立 session。
-4. 它按顺序生成标签：`custom-title`、`last-prompt`、最后一条非包装器用户消息。
-5. 它渲染可检查的编号列表。
-6. 删除时会确认目标，拒绝活跃 session，删除主 `.jsonl` 文件，并在存在时删除同名
-   `<uuid>/` 衍生产物目录。
-
-## 最小示例
-
-列表输出示例：
-
-```text
-[  1] 2026-04-24 18:17  EchoCenter           728K  bcf9c007...  Update map labels
-[  2] 2026-04-24 08:02  EchoCenter            24K  34738f62...  Pull the latest repo
-[  3] 2026-04-22 10:07  HERTCERT              31M  9f362cce...  ★ fix-v2-production-stability
-```
-
-交互式删除支持单个序号和范围：
-
-```text
-Enter indexes to delete (e.g. '1 3 5' or '1-4'; empty to quit): 2 5-7
-```
-
-## 安全说明
-
-- 活跃 session 保护会拒绝删除最近 10 分钟内修改过的 session。
-- `delete <uuid-prefix>` 在匹配不到或匹配到多条文件时都会拒绝执行。
-- 斜杠命令会在调用删除脚本前要求二次确认。
-- Linux 尚未验证，因为脚本目前使用 BSD/macOS 风格的 `stat` 和 `date` 参数。
-- 没有撤销功能。删除动作使用 `rm` 直接移除文件。
-
-## 卸载
+### 按项目过滤
 
 ```bash
-rm ~/.claude/scripts/delete-session.sh
-rm ~/.claude/commands/delete-session.md
+cc-sessions --project /path/to/project
+cc-sessions list --project /path/to/project
 ```
+
+### 其他选项
+
+```bash
+cc-sessions --help       # 显示帮助
+cc-sessions --version    # 显示版本号
+```
+
+## 快捷键
+
+| 按键 | 功能 |
+|---|---|
+| `↑` / `k` | 上移 |
+| `↓` / `j` | 下移 |
+| `Tab` | 切换项目/会话面板 |
+| `Enter` | 恢复选中会话（会话面板）/ 切换到会话面板（项目面板） |
+| `Space` | 标记/取消标记会话（用于删除） |
+| `D` | 删除已标记的会话（会话面板）/ 删除项目全部会话（项目面板） |
+| `Ctrl+D` | 删除当前会话或项目全部会话 |
+| `/` | 激活搜索 |
+| `Esc` | 取消搜索 / 切换到项目面板 |
+| `q` | 退出 |
+
+## 工作原理
+
+`cc-sessions` 读取 `~/.claude/projects/` 目录下的会话数据，Claude Code 将会话存储为 `.jsonl` 文件。工具解析每个文件的元数据（自定义标题、AI 生成标题、提示词等），并以交互式界面呈现。
+
+Shell 包装脚本（`bin/cc-sessions.sh`）负责会话恢复：TUI 退出后，从临时文件读取所选会话的项目路径和 UUID，然后在项目目录中执行 `claude --resume <uuid>`。
+
+## 开发
+
+```bash
+npm run dev          # 监听模式构建
+npm test             # 运行测试
+npm run test:watch   # 监听模式运行测试
+```
+
+## 技术栈
+
+- [React](https://react.dev/) + [Ink](https://github.com/vadimdemedes/ink) — 终端界面
+- [TypeScript](https://www.typescriptlang.org/) — 开发语言
+- [tsup](https://tsup.egoist.dev/) — 构建工具
+- [Vitest](https://vitest.dev/) — 测试框架
 
 ## 许可证
 
-本项目基于 [MIT License](./LICENSE) 发布。
+MIT
