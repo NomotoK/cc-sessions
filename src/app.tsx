@@ -456,7 +456,7 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
   // ----- Render -----
   return (
     <Box flexDirection="column" height={terminalHeight}>
-      <Box flexDirection="row" width={terminalColumns}>
+      <Box flexDirection="row" flexGrow={1} width={terminalColumns}>
         <ProjectList
           projects={state.projects}
           selectedIndex={state.selectedProjectIndex}
