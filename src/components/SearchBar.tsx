@@ -9,7 +9,10 @@ interface SearchBarProps {
   onSubmit: () => void;
   onCancel: () => void;
   projectName: string;
+  width: number;
 }
+
+const INACTIVE_PROMPT_WIDTH = 18;
 
 export default function SearchBar({
   active,
@@ -18,24 +21,31 @@ export default function SearchBar({
   onSubmit,
   onCancel,
   projectName,
+  width,
 }: SearchBarProps): React.ReactElement {
   return (
-    <Box>
+    <Box width={width}>
       <Text bold color="cyan">Sessions: </Text>
-      <Text color="cyan">{projectName}</Text>
+      <Box flexGrow={1} overflowX="hidden">
+        <Text wrap="truncate" color="cyan">{projectName}</Text>
+      </Box>
       <Text> </Text>
       {active ? (
         <>
           <Text>{'>'}</Text>
-          <TextInput
-            value={query}
-            onChange={onQueryChange}
-            onSubmit={onSubmit}
-            placeholder="type to search..."
-          />
+          <Box flexGrow={1} overflowX="hidden">
+            <TextInput
+              value={query}
+              onChange={onQueryChange}
+              onSubmit={onSubmit}
+              placeholder="type to search..."
+            />
+          </Box>
         </>
       ) : (
-        <Text dimColor>{query || 'press / to search'}</Text>
+        <Box width={INACTIVE_PROMPT_WIDTH} overflowX="hidden">
+          <Text wrap="truncate" dimColor>{query || 'press / to search'}</Text>
+        </Box>
       )}
     </Box>
   );

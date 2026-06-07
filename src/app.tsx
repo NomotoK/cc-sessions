@@ -479,6 +479,7 @@ export function App({ projectPath, onSelectSession }: AppProps): React.ReactElem
               dispatch({ type: 'SET_SEARCH', query: '' });
             }}
             projectName={currentProject?.name ?? ''}
+            width={sessionPaneWidth}
           />
           <SessionList
             sessions={filteredSessions}
