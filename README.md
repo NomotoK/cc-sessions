@@ -27,6 +27,7 @@ A terminal UI for managing [Claude Code](https://claude.ai/code) sessions. Brows
 <img width="889" height="663" alt="image" src="https://github.com/user-attachments/assets/d956a999-a201-4b5a-a809-17ba39ddb8b5" />
 
 </div>
+
 ## Prerequisites
 
 - Node.js >= 18.0.0
