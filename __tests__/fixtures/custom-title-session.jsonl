@@ -1,0 +1,6 @@
+{"type":"system","message":"System prompt...","sessionId":"aaa11111-2222-3333-4444-555566667777"}
+{"type":"user","message":{"role":"user","content":"这是一条用户消息"}}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"助手回复"}]}}
+{"type":"custom-title","customTitle":"我的自定义标题","sessionId":"aaa11111-2222-3333-4444-555566667777"}
+{"type":"ai-title","aiTitle":"AI 生成的标题","sessionId":"aaa11111-2222-3333-4444-555566667777"}
+{"type":"last-prompt","lastPrompt":"最后一条提示","sessionId":"aaa11111-2222-3333-4444-555566667777","leafUuid":"leaf-1"}

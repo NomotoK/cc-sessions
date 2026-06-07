@@ -1,0 +1,104 @@
+import React from 'react';
+import { Box, Text } from 'ink';
+import type { Project } from '../core/types.js';
+import { fillToDisplayWidth } from '../utils/layout.js';
+
+interface ProjectListProps {
+  projects: Project[];
+  selectedIndex: number;
+  isFocused: boolean;
+  visibleHeight: number;
+  deletingIndex: number | null;
+  width: number;
+}
+
+const COUNT_COLUMN_WIDTH = 6;
+
+function formatCount(count: number): string {
+  const countStr = `(${count})`;
+  return countStr.length >= COUNT_COLUMN_WIDTH
+    ? countStr
+    : countStr.padStart(COUNT_COLUMN_WIDTH, ' ');
+}
+
+export default function ProjectList({
+  projects,
+  selectedIndex,
+  isFocused,
+  visibleHeight,
+  deletingIndex,
+  width,
+}: ProjectListProps): React.ReactElement {
+  const paneWidth = width;
+
+  // Calculate scroll window
+  const halfHeight = Math.floor(visibleHeight / 2);
+  let startIndex = Math.max(0, selectedIndex - halfHeight);
+  const maxStartIndex = Math.max(0, projects.length - visibleHeight);
+  startIndex = Math.min(startIndex, maxStartIndex);
+  const endIndex = Math.min(projects.length, startIndex + visibleHeight);
+
+  const visibleProjects = projects.slice(startIndex, endIndex);
+
+  return (
+    <Box flexDirection="column" width={paneWidth}>
+      {/* Header */}
+      <Box>
+        <Text bold color="cyan">{' Projects'}</Text>
+      </Box>
+
+      {/* Blank line after title */}
+      <Box>
+        <Text>{' '}</Text>
+      </Box>
+
+      {/* Project items */}
+      {visibleProjects.map((project, i) => {
+        const actualIndex = startIndex + i;
+        const isSelected = actualIndex === selectedIndex;
+        const isDeleting = deletingIndex === actualIndex;
+        const prefix = isSelected && isFocused ? '> ' : '  ';
+        const countStr = formatCount(project.sessionCount);
+        const selectedBg = isSelected && isFocused ? 'cyan' : undefined;
+        const selectedFg = isSelected && isFocused ? 'black' : undefined;
+        const deletingBg = isDeleting ? 'red' : selectedBg;
+        const deletingFg = isDeleting ? 'white' : selectedFg;
+        const nameColumnWidth = Math.max(0, paneWidth - COUNT_COLUMN_WIDTH);
+        // Ink backgrounds apply to Text, so filler spaces keep row highlights continuous.
+        const highlightedNameText = fillToDisplayWidth(`${prefix}${project.name}`, nameColumnWidth);
+
+        return (
+          <Box key={project.encodedPath} width={paneWidth}>
+            <Box flexGrow={1} overflowX="hidden">
+              <Text
+                wrap="truncate"
+                color={deletingFg}
+                backgroundColor={deletingBg}
+                bold={isDeleting}
+              >
+                {highlightedNameText}
+              </Text>
+            </Box>
+            <Box width={COUNT_COLUMN_WIDTH} flexShrink={0}>
+              <Text
+                wrap="truncate"
+                color={deletingFg}
+                backgroundColor={deletingBg}
+                bold={isDeleting}
+              >
+                {countStr}
+              </Text>
+            </Box>
+          </Box>
+        );
+      })}
+
+      {/* Scroll indicator */}
+      {projects.length > visibleHeight && (
+        <Box>
+          <Text dimColor>({selectedIndex + 1}/{projects.length})</Text>
+        </Box>
+      )}
+    </Box>
+  );
+}
