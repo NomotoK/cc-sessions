@@ -45,6 +45,65 @@ function getLabelText(element: React.ReactElement): React.ReactElement {
 }
 
 describe('SessionList layout', () => {
+  it('applies the explicit width to the SessionList root', () => {
+    const element = SessionList({
+      sessions: [makeSession()],
+      selectedIndex: 0,
+      isFocused: false,
+      visibleHeight: 5,
+      deletingIndex: null,
+      width: 40,
+    });
+
+    expect(element.props.width).toBe(40);
+  });
+
+  it('applies the explicit width to each session row', () => {
+    const element = SessionList({
+      sessions: [makeSession()],
+      selectedIndex: 0,
+      isFocused: false,
+      visibleHeight: 5,
+      deletingIndex: null,
+      width: 40,
+    });
+
+    const item = getSessionItem(element);
+
+    expect(item.props.width).toBe(40);
+  });
+
+  it('applies the explicit width to the empty state', () => {
+    const element = SessionList({
+      sessions: [],
+      selectedIndex: 0,
+      isFocused: false,
+      visibleHeight: 5,
+      deletingIndex: null,
+      width: 40,
+    });
+
+    expect(element.props.width).toBe(40);
+  });
+
+  it('fills highlighted label content to width minus timestamp column width', () => {
+    const element = SessionList({
+      sessions: [makeSession({ label: 'short' })],
+      selectedIndex: 0,
+      isFocused: true,
+      visibleHeight: 5,
+      deletingIndex: null,
+      width: 52,
+    });
+
+    const columns = getSessionColumns(element);
+    const labelText = getColumnText(columns[0] as React.ReactElement);
+    const labelParts = React.Children.toArray(labelText.props.children) as React.ReactElement[];
+    const labelContent = React.Children.toArray(labelParts[1].props.children).join('');
+
+    expect(labelContent).toBe(` short${' '.repeat(33)}`);
+  });
+
   it('renders label and timestamp as fixed row columns', () => {
     const element = SessionList({
       sessions: [makeSession()],

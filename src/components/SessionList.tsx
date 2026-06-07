@@ -43,7 +43,7 @@ export default function SessionList({
 }: SessionListProps): React.ReactElement {
   if (sessions.length === 0) {
     return (
-      <Box flexDirection="column" flexGrow={1}>
+      <Box flexDirection="column" width={width}>
         <Text dimColor>No sessions</Text>
       </Box>
     );
@@ -61,7 +61,7 @@ export default function SessionList({
   const labelColumnWidth = Math.max(0, width - TIMESTAMP_COLUMN_WIDTH);
 
   return (
-    <Box flexDirection="column" flexGrow={1}>
+    <Box flexDirection="column" width={width}>
       {visibleSessions.map((session, i) => {
         const actualIndex = startIndex + i;
         const isSelected = actualIndex === selectedIndex;
@@ -96,7 +96,7 @@ export default function SessionList({
         const labelText = filledLabelContent.slice(iconText.length);
 
         return (
-          <Box key={session.uuid}>
+          <Box key={session.uuid} width={width}>
             <Box flexGrow={1} overflowX="hidden">
               <Text
                 wrap="truncate"
