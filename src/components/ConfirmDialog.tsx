@@ -9,9 +9,9 @@ interface ConfirmDialogProps {
 function labelIcon(source: LabelSource): string {
   switch (source) {
     case 'custom-title':
-      return '★';
+      return '*';
     case 'ai-title':
-      return '●';
+      return '#';
     default:
       return ' ';
   }

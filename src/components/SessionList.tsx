@@ -58,7 +58,7 @@ export default function SessionList({
   const endIndex = Math.min(sessions.length, startIndex + sessionsPerScreen);
 
   const visibleSessions = sessions.slice(startIndex, endIndex);
-  const labelColumnWidth = Math.max(0, width - TIMESTAMP_COLUMN_WIDTH);
+  const labelColumnWidth = Math.max(0, width - TIMESTAMP_COLUMN_WIDTH - 12);
 
   return (
     <Box flexDirection="column" width={width}>
